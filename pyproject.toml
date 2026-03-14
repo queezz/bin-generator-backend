@@ -1,0 +1,20 @@
+[project]
+name = "bin-generator-server"
+version = "0.1.0"
+description = "Web API for CadQuery bin generator (Google Cloud Run)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "cadquery",
+    "fastapi",
+    "uvicorn",
+    "bin-generator @ git+https://github.com/queezz/bin-generator.git",
+]
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["backend*"]
