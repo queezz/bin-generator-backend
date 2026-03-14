@@ -1,38 +1,35 @@
-import tempfile
-from pathlib import Path
-
-from cadquery import exporters
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.responses import Response
+from cadquery import exporters
+from functools import lru_cache
+from pathlib import Path
+import tempfile
 
 from bin_generator import make_bin
 
 app = FastAPI()
 
 
+@lru_cache(maxsize=128)
+def build_stl(x: float, y: float, h: float) -> bytes:
+    model = make_bin(x=x, y=y, h=h)
+    shape = model.val() if hasattr(model, "val") else model
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_path = Path(tmpdir) / f"bin-{x}-{y}-{h}.stl"
+        exporters.export(shape, str(out_path), exporters.ExportTypes.STL)
+        return out_path.read_bytes()
+
+
 @app.get("/generate")
 def generate(
-    x: float = 50,
-    y: float = 100,
-    h: float = 30,
+    x: float = Query(50, gt=1),
+    y: float = Query(100, gt=1),
+    h: float = Query(30, gt=1),
 ) -> Response:
-    """Generate a bin model and return it as STL."""
-    model = make_bin(x=x, y=y, h=h)
-    if hasattr(model, "toCompound"):
-        shape = model.toCompound()
-    elif hasattr(model, "val"):
-        shape = model.val()
-    else:
-        shape = model
-    with tempfile.NamedTemporaryFile(suffix=".stl", delete=False) as tmp:
-        tmp_path = Path(tmp.name)
-    try:
-        exporters.export(shape, str(tmp_path), exportType="STL")
-        stl_bytes = tmp_path.read_bytes()
-    finally:
-        tmp_path.unlink(missing_ok=True)
+    stl = build_stl(x, y, h)
     return Response(
-        content=stl_bytes,
-        media_type="application/sla",
-        headers={"Content-Disposition": "attachment; filename=bin.stl"},
+        content=stl,
+        media_type="model/stl",
+        headers={"Content-Disposition": f'attachment; filename="bin-{x}-{y}-{h}.stl"'},
     )
