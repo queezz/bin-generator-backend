@@ -51,3 +51,28 @@ Optional query parameters:
 | `h`      | float  | 30      | Bin height (Z) |
 
 The response is an STL file download with filename `bin.stl` and content type `application/sla`.
+
+
+## Try it local
+
+```
+cd bin-generator-server
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e .
+uvicorn backend.app:app --reload --host 0.0.0.0 --port 8080
+```
+
+Test download:
+```
+http://localhost:8080/generate?x=50&y=100&h=30
+```
+
+## Venv
+
+```pws
+python -m venv "$env:USERPROFILE/.venvs/server"
+```
+```pws
+& "$env:USERPROFILE/.venvs/server/Scripts/Activate.ps1"
+```

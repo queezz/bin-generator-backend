@@ -1,7 +1,7 @@
 import tempfile
 from pathlib import Path
 
-import cadquery.exporters as exporters
+from cadquery import exporters
 from fastapi import FastAPI
 from fastapi.responses import Response
 
@@ -24,9 +24,7 @@ def generate(
         shape = model.val()
     else:
         shape = model
-    with tempfile.NamedTemporaryFile(
-        suffix=".stl", delete=False
-    ) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=".stl", delete=False) as tmp:
         tmp_path = Path(tmp.name)
     try:
         exporters.export(shape, str(tmp_path), exportType="STL")
