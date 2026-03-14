@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from cadquery import exporters
 from functools import lru_cache
@@ -8,6 +9,14 @@ import tempfile
 from bin_generator import make_bin
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @lru_cache(maxsize=128)
