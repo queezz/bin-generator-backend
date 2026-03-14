@@ -65,9 +65,6 @@ uvicorn backend.app:app --reload --host 0.0.0.0 --port 8080
 
 Test download:
 ```
-http://localhost:8080/generate?x=50&y=100&h=30
-```
-```
 http://localhost:8080/generate?x=50&y=100&h=18&name=true
 ```
 ## Venv
