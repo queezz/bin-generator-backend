@@ -26,10 +26,17 @@ def generate(
     x: float = Query(50, gt=1),
     y: float = Query(100, gt=1),
     h: float = Query(30, gt=1),
-) -> Response:
+    name: bool = False,
+):
     stl = build_stl(x, y, h)
+
+    if name:
+        filename = f"bin-{x:g}-{y:g}-{h:g}.stl"
+    else:
+        filename = "bin.stl"
+
     return Response(
         content=stl,
         media_type="model/stl",
-        headers={"Content-Disposition": f'attachment; filename="bin-{x}-{y}-{h}.stl"'},
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
