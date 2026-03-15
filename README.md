@@ -25,13 +25,13 @@ uvicorn backend.app:app --reload --host 0.0.0.0 --port 8080
 ## Docker build
 
 ```bash
-docker build -t bin-generator-server .
+docker build -t bin-generator .
 ```
 
 ## Docker run
 
 ```bash
-docker run -p 8080:8080 bin-generator-server
+docker run -p 8080:8080 bin-generator
 ```
 
 ## Example request
