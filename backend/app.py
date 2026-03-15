@@ -32,9 +32,9 @@ def build_stl(x: float, y: float, h: float) -> bytes:
 
 @app.get("/generate")
 def generate(
-    x: float = Query(50, gt=1),
-    y: float = Query(100, gt=1),
-    h: float = Query(30, gt=1),
+    x: float = Query(50, ge=15, le=300),
+    y: float = Query(100, ge=15, le=300),
+    h: float = Query(30, ge=15, le=300),
     name: bool = False,
 ):
     stl = build_stl(x, y, h)
