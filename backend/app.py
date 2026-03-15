@@ -20,12 +20,12 @@ app.add_middleware(
 
 
 @lru_cache(maxsize=128)
-def build_stl(x: float, y: float, h: float) -> bytes:
-    model = make_bin(x=x, y=y, h=h)
+def build_stl(x: float, y: float, h: float, ears: bool) -> bytes:
+    model = make_bin(x=x, y=y, h=h, ears=ears)
     shape = model.val() if hasattr(model, "val") else model
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        out_path = Path(tmpdir) / f"bin-{x}-{y}-{h}.stl"
+        out_path = Path(tmpdir) / f"bin-{x}-{y}-{h}-ears{int(ears)}.stl"
         exporters.export(shape, str(out_path), exporters.ExportTypes.STL)
         return out_path.read_bytes()
 
@@ -35,12 +35,13 @@ def generate(
     x: float = Query(50, ge=15, le=300),
     y: float = Query(100, ge=15, le=300),
     h: float = Query(30, ge=15, le=300),
+    ears: bool = Query(True),
     name: bool = False,
 ):
-    stl = build_stl(x, y, h)
+    stl = build_stl(x, y, h, ears)
 
     if name:
-        filename = f"bin-{x:g}-{y:g}-{h:g}.stl"
+        filename = f"bin-{x:g}-{y:g}-{h:g}-ears{int(ears)}.stl"
     else:
         filename = "bin.stl"
 
