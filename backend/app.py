@@ -4,13 +4,16 @@ from fastapi.responses import Response
 from cadquery import exporters
 from functools import lru_cache
 from pathlib import Path
+import tempfile
 
 from bin_generator import make_bin
 
-CACHE_DIR = Path("/tmp/stl_cache")
-CACHE_DIR.mkdir(exist_ok=True)
+CACHE_DIR = Path(tempfile.gettempdir()) / "stl_cache"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 CACHE_LIMIT = 100
+
+print("STL cache directory:", CACHE_DIR)
 
 
 def cache_path(x, y, h, ears):
