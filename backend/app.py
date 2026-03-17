@@ -16,8 +16,8 @@ CACHE_LIMIT = 100
 print("STL cache directory:", CACHE_DIR)
 
 
-def cache_path(x, y, h, ears):
-    return CACHE_DIR / f"bin-{x}-{y}-{h}-ears{int(ears)}.stl"
+def cache_path(x, y, h, ears, use_ramp):
+    return CACHE_DIR / f"bin-{x}-{y}-{h}-ears{int(ears)}-ramp{int(use_ramp)}.stl"
 
 
 def cleanup_cache():
@@ -42,13 +42,13 @@ app.add_middleware(
 
 
 @lru_cache(maxsize=128)
-def build_stl(x: float, y: float, h: float, ears: bool) -> bytes:
-    path = cache_path(x, y, h, ears)
+def build_stl(x: float, y: float, h: float, ears: bool, use_ramp: bool) -> bytes:
+    path = cache_path(x, y, h, ears, use_ramp)
 
     if path.exists():
         return path.read_bytes()
 
-    model = make_bin(x=x, y=y, h=h, ears=ears)
+    model = make_bin(x=x, y=y, h=h, ears=ears, use_ramp=use_ramp)
     shape = model.val() if hasattr(model, "val") else model
 
     exporters.export(shape, str(path), exporters.ExportTypes.STL)
@@ -64,12 +64,13 @@ def generate(
     y: float = Query(100, ge=15, le=300),
     h: float = Query(30, ge=15, le=300),
     ears: bool = Query(True),
+    use_ramp: bool = Query(True),
     name: bool = False,
 ):
-    stl = build_stl(x, y, h, ears)
+    stl = build_stl(x, y, h, ears, use_ramp)
 
     if name:
-        filename = f"bin-{x:g}-{y:g}-{h:g}-ears{int(ears)}.stl"
+        filename = f"bin-{x:g}-{y:g}-{h:g}-ears{int(ears)}-ramp{int(use_ramp)}.stl"
     else:
         filename = "bin.stl"
 
