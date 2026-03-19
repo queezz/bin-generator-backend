@@ -1,77 +1,32 @@
-# bin-generator-server
+# beanbins
 
-Web API that exposes the [bin-generator](https://github.com/queezz/bin-generator) CadQuery bin generator. Runs in Docker and is suitable for deployment to Google Cloud Run.
+Simple tool to generate parametric 3D-printable bins.
 
-## Overview
+👉 https://beanbins.xyz
 
-- **GET /generate** — accepts dimensions `x`, `y`, `h` (defaults: 50, 100, 30), builds the bin with the installed generator, exports to STL, and returns the file as a download (`bin.stl`, `application/sla`).
+## What it does
 
-Stack: Python 3.11, FastAPI, Uvicorn. Dependencies (including `bin-generator` from Git) are declared in `pyproject.toml` (PEP 621). No Poetry, no `requirements.txt`.
+- Adjust bin dimensions
+- Preview in browser
+- Download STL
+- Print
 
-## Local development
+No installs. No accounts.
 
-```bash
-cd bin-generator-server
-python -m venv .venv
-# Windows PowerShell:
-.\.venv\Scripts\Activate.ps1
-# Linux/macOS:
-# source .venv/bin/activate
+## Notes
 
-pip install -e .
-uvicorn backend.app:app --reload --host 0.0.0.0 --port 8080
-```
+- Works best on desktop
+- Mobile UI is limited
+- STL generation may take a few seconds (cloud backend)
 
-## Docker build
+## Source
 
-```bash
-docker build -t bin-generator .
-```
+Frontend: https://github.com/queezz/bin-generator-frontend  
+Backend: https://github.com/queezz/bin-generator-server
 
-## Docker run
+## Network note
 
-```bash
-docker run -p 8080:8080 bin-generator
-```
+Some managed networks (e.g. universities, corporate Wi-Fi) may block the site or show security warnings due to HTTPS inspection (certificate injection).
 
-## Example request
-
-Generate a bin with default dimensions:
-
-```
-http://localhost:8080/generate?x=50&y=100&h=30
-```
-
-Optional query parameters:
-
-| Parameter | Type  | Default | Description   |
-|----------|--------|---------|---------------|
-| `x`      | float  | 50      | Bin length (X) |
-| `y`      | float  | 100     | Bin width (Y)  |
-| `h`      | float  | 30      | Bin height (Z) |
-
-The response is an STL file download with filename `bin.stl` and content type `application/sla`.
-
-
-## Try it local
-
-```
-cd bin-generator-server
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -e .
-uvicorn backend.app:app --reload --host 0.0.0.0 --port 8080
-```
-
-Test download:
-```
-http://localhost:8080/generate?x=50&y=100&h=18&name=true
-```
-## Venv
-
-```pws
-python -m venv "$env:USERPROFILE/.venvs/server"
-```
-```pws
-& "$env:USERPROFILE/.venvs/server/Scripts/Activate.ps1"
-```
+If you see “connection is not private” or the site is blocked:
+- try a different network (mobile hotspot, home Wi-Fi)
