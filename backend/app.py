@@ -5,8 +5,26 @@ from cadquery import exporters
 from functools import lru_cache
 from pathlib import Path
 import tempfile
+import tomllib
 
 from bin_generator import make_bin
+
+_VERSION_FALLBACK = "0.1.0"
+
+
+def _read_app_version() -> str:
+    pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+    if not pyproject.is_file():
+        return _VERSION_FALLBACK
+    with pyproject.open("rb") as f:
+        data = tomllib.load(f)
+    ver = data.get("project", {}).get("version")
+    if isinstance(ver, str) and ver.strip():
+        return ver.strip()
+    return _VERSION_FALLBACK
+
+
+VERSION = _read_app_version()
 
 CACHE_DIR = Path(tempfile.gettempdir()) / "stl_cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -41,6 +59,15 @@ app.add_middleware(
 )
 
 
+@app.get("/info")
+def info():
+    return {
+        "status": "ok",
+        "version": VERSION,
+        "name": "bin-generator-backend",
+    }
+
+
 @lru_cache(maxsize=128)
 def build_stl(x: float, y: float, h: float, wall: float, ears: bool, use_ramp: bool) -> bytes:
     path = cache_path(x, y, h, wall, ears, use_ramp)
@@ -63,7 +90,7 @@ def generate(
     x: float = Query(50, ge=15, le=300),
     y: float = Query(100, ge=15, le=300),
     h: float = Query(30, ge=15, le=300),
-    wall: float = Query(1.2, gt=0.4, le=3.),
+    wall: float = Query(1.2, gt=0.4, le=2.99),
     ears: bool = Query(True),
     use_ramp: bool = Query(True),
     name: bool = False,
