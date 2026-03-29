@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+﻿from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from cadquery import exporters
@@ -34,8 +34,11 @@ CACHE_LIMIT = 100
 print("STL cache directory:", CACHE_DIR)
 
 
-def cache_path(x, y, h, wall, ears, use_ramp):
-    return CACHE_DIR / f"bin-{x}-{y}-{h}-w{wall:g}-ears{int(ears)}-ramp{int(use_ramp)}.stl"
+def cache_path(x, y, h, wall, ears, use_ramp, texture):
+    tag = "textured" if texture else "smooth"
+    return CACHE_DIR / (
+        f"bin-{x}-{y}-{h}-w{wall:g}-ears{int(ears)}-ramp{int(use_ramp)}-{tag}.stl"
+    )
 
 
 def cleanup_cache():
@@ -69,13 +72,29 @@ def info():
 
 
 @lru_cache(maxsize=128)
-def build_stl(x: float, y: float, h: float, wall: float, ears: bool, use_ramp: bool) -> bytes:
-    path = cache_path(x, y, h, wall, ears, use_ramp)
+def build_stl(
+    x: float,
+    y: float,
+    h: float,
+    wall: float,
+    ears: bool,
+    use_ramp: bool,
+    texture: bool,
+) -> bytes:
+    path = cache_path(x, y, h, wall, ears, use_ramp, texture)
 
     if path.exists():
         return path.read_bytes()
 
-    model = make_bin(x=x, y=y, h=h, wall=wall, ears=ears, use_ramp=use_ramp)
+    model = make_bin(
+        x=x,
+        y=y,
+        h=h,
+        wall=wall,
+        ears=ears,
+        use_ramp=use_ramp,
+        pattern=texture,
+    )
     shape = model.val() if hasattr(model, "val") else model
 
     exporters.export(shape, str(path), exporters.ExportTypes.STL)
@@ -93,12 +112,16 @@ def generate(
     wall: float = Query(1.2, gt=0.4, le=2.99),
     ears: bool = Query(True),
     use_ramp: bool = Query(True),
+    texture: bool = Query(False),
     name: bool = False,
 ):
-    stl = build_stl(x, y, h, wall, ears, use_ramp)
+    stl = build_stl(x, y, h, wall, ears, use_ramp, texture)
 
     if name:
-        filename = f"bin-{x:g}-{y:g}-{h:g}-w{wall:g}-ears{int(ears)}-ramp{int(use_ramp)}.stl"
+        tag = "textured" if texture else "smooth"
+        filename = (
+            f"bin-{x:g}-{y:g}-{h:g}-w{wall:g}-ears{int(ears)}-ramp{int(use_ramp)}-{tag}.stl"
+        )
     else:
         filename = "bin.stl"
 
