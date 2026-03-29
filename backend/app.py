@@ -1,4 +1,4 @@
-﻿from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from cadquery import exporters
@@ -31,13 +31,16 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 CACHE_LIMIT = 100
 
+# Bump when STL export semantics change (e.g. v1 used model.val() and dropped pattern solids).
+_CACHE_FILE_VER = "v2"
+
 print("STL cache directory:", CACHE_DIR)
 
 
 def cache_path(x, y, h, wall, ears, use_ramp, texture):
     tag = "textured" if texture else "smooth"
     return CACHE_DIR / (
-        f"bin-{x}-{y}-{h}-w{wall:g}-ears{int(ears)}-ramp{int(use_ramp)}-{tag}.stl"
+        f"bin-{_CACHE_FILE_VER}-{x}-{y}-{h}-w{wall:g}-ears{int(ears)}-ramp{int(use_ramp)}-{tag}.stl"
     )
 
 
@@ -95,9 +98,9 @@ def build_stl(
         use_ramp=use_ramp,
         pattern=texture,
     )
-    shape = model.val() if hasattr(model, "val") else model
-
-    exporters.export(shape, str(path), exporters.ExportTypes.STL)
+    # Export the Workplane, not model.val(): val() can drop compound geometry
+    # (e.g. wall pattern bumps), so textured bins looked identical to smooth.
+    exporters.export(model, str(path), exporters.ExportTypes.STL)
 
     cleanup_cache()
 
